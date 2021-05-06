@@ -18,6 +18,37 @@ io.on('connection', function (socket) {
   });
 });
 
+/**
+ * RestAPI
+*/
+app.get('/notifications', (req, res) => {
+    data = {
+        'message': 'Received a GET HTTP method'
+    }
+    return res.send(data);
+});
+
+app.post('/notifications', (req, res) => {
+    data = {
+        'message': 'Received a POST HTTP method'
+    }
+    return res.send(data);
+});
+
+app.put('/notifications', (req, res) => {
+    data = {
+        'message': 'Received a PUT HTTP method'
+    }
+    return res.send(data);
+});
+
+app.delete('/notifications', (req, res) => {
+    data = {
+        'message': 'Received a DELETE HTTP method'
+    }
+    return res.send(data);
+});
+
 http.listen(3001, function() {
    console.log('listening on localhost:3001');
 });
