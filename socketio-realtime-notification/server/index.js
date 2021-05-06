@@ -1,13 +1,22 @@
-const app = require('express')();
+var express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
 const httpServer = require("http").Server(app);
 const io = require('socket.io')(httpServer);
 
 app.set('io', io);
 
+// Parser data from request
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
+
 app.get('/', function(req, res) {
    res.sendFile(__dirname + '/index.html');
 });
 
+app.use('/static', express.static(__dirname + '/public'))
 
 app.get('io').on('connection', function (socket) {
   socket.on( 'new_notification', function( data ) {
@@ -23,25 +32,14 @@ app.get('io').on('connection', function (socket) {
 /**
  * RestAPI
 */
-// app.get('/notifications', (req, res) => {
-//     data = {
-//         'message': 'Received a GET HTTP method'
-//     }
-//     return res.send(data);
-// });
+app.post('/notifications', (req, res) => {
+    console.log(req.body);
 
-app.post('/', (req, res) => {
-    var message = "SocketIO emit on express route";
-    var title = "Notification";
-    var icon = "alert-icon";
-
-    // console.log('Request data:', req.app.get('io') );
-    
-    // req.app.io.emit('new_notification', {
-    //     message: message,
-    //     title: title,
-    //     icon: icon,
-    // });
+    data = {
+      title: req.body.title || "Notification",
+      message: req.body.message || "SocketIO emit on express route",
+      icon: req.body.icon || "/static/assets/images/user-avatar.png",
+    }
 
     try {
         req.app.get('io').emit('new_notification', {
@@ -54,24 +52,11 @@ app.post('/', (req, res) => {
     }
 
     data = {
-        'message': 'Received a POST HTTP method'
+        'message': 'Sent a realtime notification on Express route'
     }
     return res.send(data);
 });
 
-// app.put('/notifications', (req, res) => {
-//     data = {
-//         'message': 'Received a PUT HTTP method'
-//     }
-//     return res.send(data);
-// });
-
-// app.delete('/notifications', (req, res) => {
-//     data = {
-//         'message': 'Received a DELETE HTTP method'
-//     }
-//     return res.send(data);
-// });
 
 httpServer.listen(3001, function() {
    console.log('listening on localhost:3001');

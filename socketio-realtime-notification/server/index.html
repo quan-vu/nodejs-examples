@@ -7,10 +7,100 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
 
-    <title>Browser Notification</title>
+    <title>SocketIO Emit Notification on Express Route</title>
 
     <style type="text/css">
+        #header-notification .dropdown-toggle::after{
+            display: none;
+        }
 
+        #header-notification .icon {
+            display: block;
+            height: 50px;
+            clear: both;
+            width: 80px;
+            margin-left: calc(100% - 80px);
+            position: relative;
+            margin-top: 25px;
+        }
+
+        #header-notification .svg {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #header-notification .count-unread{
+            font-size: 11px;
+            font-style: normal;
+            border: 1px solid red;
+            width: 18px;
+            height: 18px;
+            display: block;
+            position: absolute;
+            left: 16px;
+            top: -6px;
+            color: #fff;
+            background: orangered;
+            border-radius: 20px;
+            padding: 0 1px;
+            text-align: center;
+        }
+
+        #header-notification .notifications{
+            list-style: none;
+            right: 0 !important;
+            width: 260px;
+            padding: 0;
+        }
+
+        #header-notification .notifications.dropdown-menu[data-bs-popper] {
+            right: 15px !important;
+            left: unset;
+            top: 85%;
+            margin-top: .125rem;
+        }
+        
+        #header-notification .notifications li{
+            position: relative;
+            padding: 10px 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.8rem;
+        }
+
+        #header-notification .notifications li .image{
+            width: 36px;
+            height: 36px;
+            position: absolute;
+            left: 6;
+        }
+
+        #header-notification .notifications li .image img{
+            min-width: 100%;
+            min-height: 100%;
+        }
+        
+        #header-notification .notifications li .title{
+            display: block;
+            padding-left: 40px;
+            font-weight: 600;
+        }
+
+        #header-notification .notifications li .message{
+            display: block;
+            padding-left: 40px;
+        }
+
+        #main-nav{
+            height: 54px;
+            border-bottom: 1px solid #bbb;
+        }
+
+
+        
     </style>
 
     <script src = "/socket.io/socket.io.js"></script>
@@ -28,26 +118,41 @@
         socket.on('new_notification', function (data) {
             console.log('Client received notification: ', data.title, data.message, data.icon);
 
+            // Process show notification on header
             var notiContainer = $('#header-notification');
             var notiCountUnread = notiContainer.find('.count-unread');
             var notiList = notiContainer.find('ul.notifications');
-
-            var newNotify = '<li>';
-            newNotify += '<span class="icon"><img src="' + data.icon + '" alt=""/></span>';
-            newNotify += '<span class="title">' + data.title + '</span>';
-            newNotify += '<span class="message">' + data.message + '</span>';
-            newNotify += '</li>';
-
-            notiList.append(newNotify);
+            var currentCount = parseInt(notiCountUnread.data('count'));
             
+            if(data && data.message){
+                // Update count unread
+                currentCount++;
+                notiCountUnread.data('count', currentCount).text(currentCount);
+            
+                // Append new notify
+                var newNotify = '<li>';
+                newNotify += '<span class="image"><img class="img-thumbnail rounded-circle" src="' + data.icon + '" alt=""/></span>';
+                newNotify += '<span class="title">' + data.title + '</span>';
+                newNotify += '<span class="message">' + data.message + '</span>';
+                newNotify += '</li>';
+                notiList.append(newNotify);    
+            }
+
+            if(currentCount > 0){
+                notiCountUnread.removeClass('d-none');
+            }else{
+                notiCountUnread.addClass('d-none');
+            }
+
+            showDesktopNotification(data.title, data.message, data.icon);
         });
         /**
          * Set Notification Request
          * @type type
          */
         function setNotification() {
-            showDesktopNotification('Lokesh', 'Desktop Notification..!', '/index.jpeg');
-            sendNodeNotification('Lokesh', 'Browser Notification..!', '/index.jpeg');
+            showDesktopNotification('Quan Vu', 'Desktop Notification..!', '/static/assets/images/user-avatar.png');
+            sendNodeNotification('Quan Vu', 'Browser Notification..!', '/static/assets/images/user-avatar.png');
         }
         /**
          * Check Browser Notification Permission
@@ -118,37 +223,35 @@
                 icon: icon,
             });
         }
+
+
     </script>
 </head>  
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light p-1">
+        <nav id="main-nav" class="navbar navbar-expand-lg navbar-light px-3 py-0">
             <div class="container-fluid">
-              <a class="navbar-brand" href="#">Navbar w/ text</a>
+              <a class="navbar-brand p" href="#">
+                    <img src="https://getbootstrap.com/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
+              </a>
               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
               </button>
               <div class="collapse navbar-collapse" id="navbarText">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Home</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="#">Features</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="#">Pricing</a>
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
                   </li>
                 </ul>
                 <span class="navbar-text">
                     <div id="header-notification">
-                        <span class="icon">
+                        <span class="icon dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
                                 <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
                             </svg>
-                            <i class="count-unread">0</i>
+                            <i class="count-unread d-none" data-count="0">0</i>
                         </span>
-                        <ul class="notifications"></ul>
+                        <ul class="notifications dropdown-menu"></ul>
                     </div>
                 </span>
               </div>
@@ -156,15 +259,28 @@
           </nav>
     </header>
     <main>
-        <button type = "button" name = "button" onclick = "setNotification()">
-            Send Notification
-        </button>
-
-        <form action="http://localhost:3001" method="POST">
-            <button type="submit">
-                Send Notification via Rest API
-            </button>
-        </form>
+        <div class="container py-3">
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <form method="POST">
+                        <p>
+                            <input class="form-control" name="title" value="Welcome" required/>
+                        </p>
+                        <p>
+                            <input class="form-control" name="message" value="We will play around with SocketIO" required/>
+                        </p>
+                        <p>
+                            <input class="form-control" name="icon" value="/static/assets/images/user-avatar.png" required/>
+                        </p>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            Send Notification via Rest API
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
     </main>
     <footer></footer>
 
@@ -172,9 +288,28 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
     <script>
-        $(document).ready(function(){
-          
+        $(document).ready(function () {
+            $("form").submit(function (event) {
+                var formData = {
+                    title: $(this).find('input[name="title"]').val(),
+                    message: $(this).find('input[name="message"]').val(),
+                    icon: $(this).find('input[name="icon"]').val(),
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: 'http://localhost:3001/notifications',
+                    data: formData,
+                    dataType: "json",
+                }).done(function (data) {
+                    console.log(data);
+                });
+
+                event.preventDefault();
+            });
         });
+            
+
     </script>
 </body>
 </html>
