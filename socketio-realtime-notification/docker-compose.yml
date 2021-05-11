@@ -17,7 +17,7 @@ services:
             context: ./web-client
         volumes: 
             - ./web-client/htdocs:/usr/share/nginx/html
-            - ./nginx/nginx.conf:/etc/nginx/conf.d/default.template:ro
+            - ./web-client/nginx/nginx.conf:/etc/nginx/conf.d/default.template:ro
         ports: 
             - 3002:80
         env_file: ./web-client/.env
