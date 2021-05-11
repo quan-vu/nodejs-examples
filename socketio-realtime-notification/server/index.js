@@ -11,7 +11,8 @@ const httpServer = require("http").Server(app);
 const io = require('socket.io')(httpServer, {
   cors: {
     origin: CORS_HOSTS,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true,
   }
 });
 

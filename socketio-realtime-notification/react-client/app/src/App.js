@@ -20,7 +20,9 @@ function App() {
   }
 
   useEffect(() => {
-    const socket = socketIOClient(ENDPOINT);
+    const socket = socketIOClient(ENDPOINT, {
+      withCredentials: true
+    });
     
     socket.on("FromAPI", data => {
       setResponse(data);
