@@ -21,6 +21,40 @@ const io = require('socket.io')(httpServer, {
   }
 });
 
+// START - Database
+const fs = require('fs');
+const FAKE_DB = './data/user_connections.json';
+
+const readDB = () => {
+  let rawdata = fs.readFileSync(FAKE_DB);
+  let user_connections = JSON.parse(rawdata);
+  console.log(user_connections);    
+  return user_connections;
+}
+
+
+const addUserConnection = (userId, connectionId) => {
+
+  // let currentData = readDB();
+
+  // if(! currentData) {
+  //     currentData = { 
+  //         userId: connectionId,
+  //     };
+  // }else {
+  //   currentData = {};
+  //   currentData[userId] = connectionId;
+  // }
+
+  let currentData = {};
+  currentData[userId] = connectionId;
+  console.info(currentData);
+   
+  data = JSON.stringify(currentData, null, 2);
+  fs.writeFileSync(FAKE_DB, data);
+}
+// END - Database
+
 var corsOptions = {
   origin: CORS_HOSTS,
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -38,7 +72,16 @@ const onConnection = (socket) => {
 
   // Auto disconnect to avoid flooding the server.
   console.log("New client connected");
-  console.log("Request headers: ", socket.handshake.headers); // an object containing "my-custom-header": "1234"
+  // console.log("Request headers: ", socket.handshake.headers); // an object containing "my-custom-header": "1234"
+
+  // Save connecttion id
+  const headers = socket.handshake.headers;
+  if(headers['x-authorization-id'] !== undefined && headers['x-authorization-id']){
+    // console.log(socket.id);
+    const connectionId = socket.id;
+    const userId = headers['x-authorization-id'];    
+    addUserConnection(userId, connectionId);
+  }
 
   if (interval) {
     clearInterval(interval);
