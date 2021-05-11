@@ -43,6 +43,11 @@ function Home() {
         console.log(response);
     }
 
+
+  const doLogin = (event) => {
+    console.log("User login..");
+  }
+
   return (
     <div className="container py-3">
       <div className="row">
@@ -85,6 +90,11 @@ function Home() {
               <p>Message: {message}</p>
               <p>Title: {icon}</p>                
           </div> */}
+          <div className="my-5">
+            <div className="col-sm-12 text-left">
+              <a onClick={() => doLogin()} className="btn btn-success">Login</a>
+            </div>
+          </div>
 
         </div>
       </div>

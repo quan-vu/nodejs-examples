@@ -13,6 +13,11 @@ const io = require('socket.io')(httpServer, {
     origin: CORS_HOSTS,
     methods: ["GET", "POST"],
     credentials: true,
+    allowedHeaders: [
+      'content-type', 
+      'authorization', 
+      'x-authorization-id'
+    ]
   }
 });
 
@@ -28,6 +33,34 @@ const getApiAndEmit = socket => {
   // Emitting a new message. Will be consumed by the client
   socket.emit("FromAPI", response);
 };
+
+const onConnection = (socket) => {
+
+  // Auto disconnect to avoid flooding the server.
+  console.log("New client connected");
+  console.log("Request headers: ", socket.handshake.headers); // an object containing "my-custom-header": "1234"
+
+  if (interval) {
+    clearInterval(interval);
+  }
+  interval = setInterval(() => getApiAndEmit(socket), 1000);
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+    clearInterval(interval);
+  });
+
+  // Handle events
+  socket.on( 'new_notification', function( data ) {
+    console.log(data.title,data.message);
+    io.sockets.emit( 'show_notification', { 
+      title: data.title, 
+      message: data.message, 
+      icon: data.icon, 
+    });
+  });
+
+  // registerUserHandlers(io, socket);
+}
 
 // Attach SocketIO to Expressjs
 app.set('io', io);
@@ -47,29 +80,7 @@ app.get('/', function(req, res) {
 
 app.use('/static', express.static(__dirname + '/public'))
 
-app.get('io').on('connection', function (socket) {
-
-  // Auto disconnect to avoid flooding the server.
-  console.log("New client connected");
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => getApiAndEmit(socket), 1000);
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-    clearInterval(interval);
-  });
-
-  // Handle events
-  socket.on( 'new_notification', function( data ) {
-    console.log(data.title,data.message);
-    io.sockets.emit( 'show_notification', { 
-      title: data.title, 
-      message: data.message, 
-      icon: data.icon, 
-    });
-  });
-});
+app.get('io').on('connection', onConnection);
 
 /**
  * RestAPI
