@@ -42,13 +42,9 @@ app.post('/notifications', (req, res) => {
     }
 
     try {
-        req.app.get('io').emit('new_notification', {
-            message: message,
-            title: title,
-            icon: icon,
-        });
+        req.app.get('io').emit('new_notification', data);
     } catch (error) {
-        console.error('Error emit socket event from route!');
+        console.error('Error emit socket event from route!', error);
     }
 
     data = {
