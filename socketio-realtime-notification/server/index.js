@@ -1,10 +1,27 @@
+const PORT = process.env.PORT || 3099;
+const CORS_HOST = 'http://localhost:3002';
+
 var express = require('express');
-const bodyParser = require('body-parser');
+var cors = require('cors')
 const app = express();
 const httpServer = require("http").Server(app);
-const io = require('socket.io')(httpServer);
+const io = require('socket.io')(httpServer, {
+  cors: {
+    origin: CORS_HOST,
+    methods: ["GET", "POST"]
+  }
+});
 
+var corsOptions = {
+  origin: CORS_HOST,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+// Attach SocketIO to Expressjs
 app.set('io', io);
+
+// Config CORS orign as global
+app.use(cors(corsOptions));
 
 // Parser data from request
 app.use(express.json());
@@ -54,6 +71,6 @@ app.post('/notifications', (req, res) => {
 });
 
 
-httpServer.listen(3001, function() {
-   console.log('listening on localhost:3001');
+httpServer.listen(PORT, function() {
+   console.log(`Listening on http://localhost:${PORT}`);
 });

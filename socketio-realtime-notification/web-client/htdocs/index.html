@@ -103,9 +103,21 @@
         
     </style>
 
-    <script src = "/socket.io/socket.io.js"></script>
+    <!-- Add SockerIO: 4.0.1 via CDN-->
+    <!-- <script src = "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script> -->
+    <script src = "/assets/js/socket.io.4-0-1.min.js"></script>
+
     <script>
-        var socket = io();
+        // Public 
+        const WEBSOCKET_URL = 'http://localhost:3099';
+        const RESTAPI_URL = 'http://localhost:3099/notifications';
+        
+        // Docker network
+        // const WEBSOCKET_URL = 'http://localhost:3099';
+        // const RESTAPI_URL = 'http://server:3000/notifications';
+        
+        var socket = io(WEBSOCKET_URL);
+
         /**
          * Set Default Socket For Show Notification
          * @param {type} data
@@ -240,7 +252,7 @@
               <div class="collapse navbar-collapse" id="navbarText">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    <a class="nav-link active" aria-current="page" href="/">Web Client</a>
                   </li>
                 </ul>
                 <span class="navbar-text">
@@ -298,7 +310,7 @@
 
                 $.ajax({
                     type: "POST",
-                    url: 'http://localhost:3099/notifications',
+                    url: RESTAPI_URL,
                     data: formData,
                     dataType: "json",
                 }).done(function (data) {
