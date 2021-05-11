@@ -1,5 +1,8 @@
 const PORT = process.env.PORT || 3099;
-const CORS_HOST = 'http://localhost:3002';
+const CORS_HOSTS = [
+  'http://localhost:3002',  // Web client run on nginx
+  'http://localhost:3003',  // React client
+];
 
 var express = require('express');
 var cors = require('cors')
@@ -7,13 +10,13 @@ const app = express();
 const httpServer = require("http").Server(app);
 const io = require('socket.io')(httpServer, {
   cors: {
-    origin: CORS_HOST,
+    origin: CORS_HOSTS,
     methods: ["GET", "POST"]
   }
 });
 
 var corsOptions = {
-  origin: CORS_HOST,
+  origin: CORS_HOSTS,
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 

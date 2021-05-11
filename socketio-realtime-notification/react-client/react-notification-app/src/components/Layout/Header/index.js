@@ -7,7 +7,7 @@ function Header() {
     <header>
       <nav id="main-nav" className="navbar navbar-expand-lg navbar-light px-3 py-0">
         <div className="container-fluid">
-          <a className="navbar-brand p" href="#">
+          <a className="navbar-brand p" href="/">
             <img src={logo} alt="" width={30} height={24} className="d-inline-block align-text-top" />
           </a>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
