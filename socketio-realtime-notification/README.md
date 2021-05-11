@@ -29,6 +29,8 @@ Let test send notification via API with theses way:
 **CURL**
 
 ```shell
+
+# Send to all clients 
 curl --location --request POST 'http://localhost:3099/notifications' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -36,6 +38,16 @@ curl --location --request POST 'http://localhost:3099/notifications' \
     "message": "Sent from CURL command",
     "icon": "https://avatars.githubusercontent.com/u/46224928?s=60&v=4"
 }'
+
+# Send private message to a special client by socket id
+curl --location --request POST 'http://localhost:3099/notifications' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title": "For User1 only",
+    "message": "Sent private message for user with user_id=1 only",
+    "icon": "https://avatars.githubusercontent.com/u/46224928?s=60&v=4",
+    "user_id": 1
+}' 
 ```
 
 **Postman**

@@ -25,27 +25,16 @@ const io = require('socket.io')(httpServer, {
 const fs = require('fs');
 const FAKE_DB = './data/user_connections.json';
 
-const readDB = () => {
+const getConnectionByUserId = (userId) => {
   let rawdata = fs.readFileSync(FAKE_DB);
-  let user_connections = JSON.parse(rawdata);
-  console.log(user_connections);    
-  return user_connections;
+  let data = JSON.parse(rawdata);
+  if(data.hasOwnProperty(userId)){
+    return data[userId];
+  }
+  return null;
 }
 
-
 const addUserConnection = (userId, connectionId) => {
-
-  // let currentData = readDB();
-
-  // if(! currentData) {
-  //     currentData = { 
-  //         userId: connectionId,
-  //     };
-  // }else {
-  //   currentData = {};
-  //   currentData[userId] = connectionId;
-  // }
-
   let currentData = {};
   currentData[userId] = connectionId;
   console.info(currentData);
@@ -131,6 +120,8 @@ app.get('io').on('connection', onConnection);
 app.post('/notifications', (req, res) => {
     console.log(req.body);
 
+    const userId = req.body.user_id || 0;
+
     data = {
       title: req.body.title || "Notification",
       message: req.body.message || "SocketIO emit on express route",
@@ -138,7 +129,18 @@ app.post('/notifications', (req, res) => {
     }
 
     try {
+      // to individual socketid (private message)
+      const socketId = getConnectionByUserId(userId);
+      if(socketId)
+      {
+        req.app.get('io').to(socketId).emit('new_notification', data);
+      }
+      else
+      {
+        // to all clients by default  
         req.app.get('io').emit('new_notification', data);
+      }
+
     } catch (error) {
         console.error('Error emit socket event from route!', error);
     }
