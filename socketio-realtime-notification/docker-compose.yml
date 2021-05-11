@@ -21,3 +21,12 @@ services:
         ports: 
             - 3002:80
         env_file: ./web-client/.env
+
+    react-client:
+        build: 
+            context: ./react-client
+        volumes: 
+            - ./react-client/app:/app
+        ports: 
+            - 3003:3000
+        env_file: ./react-client/app/.env.local

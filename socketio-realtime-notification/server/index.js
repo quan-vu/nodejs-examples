@@ -20,6 +20,14 @@ var corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
+let interval;
+
+const getApiAndEmit = socket => {
+  const response = new Date();
+  // Emitting a new message. Will be consumed by the client
+  socket.emit("FromAPI", response);
+};
+
 // Attach SocketIO to Expressjs
 app.set('io', io);
 
@@ -39,6 +47,19 @@ app.get('/', function(req, res) {
 app.use('/static', express.static(__dirname + '/public'))
 
 app.get('io').on('connection', function (socket) {
+
+  // Auto disconnect to avoid flooding the server.
+  console.log("New client connected");
+  if (interval) {
+    clearInterval(interval);
+  }
+  interval = setInterval(() => getApiAndEmit(socket), 1000);
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+    clearInterval(interval);
+  });
+
+  // Handle events
   socket.on( 'new_notification', function( data ) {
     console.log(data.title,data.message);
     io.sockets.emit( 'show_notification', { 

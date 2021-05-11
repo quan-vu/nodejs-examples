@@ -1,0 +1,88 @@
+#header-notification .dropdown-toggle::after{
+  display: none;
+}
+
+#header-notification .icon {
+  display: block;
+  height: 50px;
+  clear: both;
+  width: 80px;
+  margin-left: calc(100% - 80px);
+  position: relative;
+  margin-top: 25px;
+}
+
+#header-notification .svg {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+#header-notification .count-unread{
+  font-size: 11px;
+  font-style: normal;
+  border: 1px solid red;
+  width: 18px;
+  height: 18px;
+  display: block;
+  position: absolute;
+  left: 16px;
+  top: -6px;
+  color: #fff;
+  background: orangered;
+  border-radius: 20px;
+  padding: 0 1px;
+  text-align: center;
+}
+
+#header-notification .notifications{
+  list-style: none;
+  right: 0 !important;
+  width: 260px;
+  padding: 0;
+}
+
+#header-notification .notifications.dropdown-menu[data-bs-popper] {
+  right: 15px !important;
+  left: unset;
+  top: 85%;
+  margin-top: .125rem;
+}
+
+#header-notification .notifications li{
+  position: relative;
+  padding: 10px 10px;
+  margin: 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.8rem;
+}
+
+#header-notification .notifications li .image{
+  width: 36px;
+  height: 36px;
+  position: absolute;
+  left: 6;
+}
+
+#header-notification .notifications li .image img{
+  min-width: 100%;
+  min-height: 100%;
+}
+
+#header-notification .notifications li .title{
+  display: block;
+  padding-left: 40px;
+  font-weight: 600;
+}
+
+#header-notification .notifications li .message{
+  display: block;
+  padding-left: 40px;
+}
+
+#main-nav{
+  height: 54px;
+  border-bottom: 1px solid #bbb;
+}

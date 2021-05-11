@@ -80,12 +80,12 @@ function Home() {
             </button>
           </form>
 
-          <div>
-                <p>Title: {title}</p>
-                <p>Message: {message}</p>
-                <p>Title: {icon}</p>
-                
-            </div>
+          {/* <div>
+              <p>Title: {title}</p>
+              <p>Message: {message}</p>
+              <p>Title: {icon}</p>                
+          </div> */}
+
         </div>
       </div>
     </div>
