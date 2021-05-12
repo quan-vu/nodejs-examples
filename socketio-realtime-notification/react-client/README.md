@@ -12,4 +12,13 @@ Start
 yarn start
 ```
 
+## Test
+
+To test client we fake user id by as follows:
+
+```
+http://localhost:3003/?uid=100
+http://localhost:3003/?uid=200
+http://localhost:3003/?uid=300
+```
 

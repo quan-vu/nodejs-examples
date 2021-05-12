@@ -3,10 +3,19 @@ import './App.css';
 import Header from 'src/components/Layout/Header';
 import Home from 'src/components/Home';
 import socketIOClient from "socket.io-client";
+import {
+  Switch,
+  useLocation
+} from "react-router-dom";
 
 const ENDPOINT = process.env.REACT_APP_NOTIFICATION_HOST;
 
+
 function App() {
+
+  let location = useLocation();
+  let query = new URLSearchParams(location.search);
+  const uid = query.get("uid") || 1;
 
   // const [response, setResponse] = useState("");
   const [notification, setNotification] = useState(null);
@@ -23,7 +32,7 @@ function App() {
     const socket = socketIOClient(ENDPOINT, {
       withCredentials: true,
       extraHeaders: {
-        "x-authorization-id": "1"
+        "x-authorization-id": uid
       }
     });
     
