@@ -4,8 +4,12 @@
 
 1. [x] Realtime notification server with SocketIO.
 2. [x] Send realtime notification via RestAPI (Postman, CURL, etc).
-3. [x] Apply realtime websocket in a ReactJS client.
-4. [ ] Apply realtime websocket in a Angular client.
+3. [ ] Authenticate Socket Server by access token.
+4. [ ] Authenticate Express API by access token.
+5. [x] Apply realtime websocket in a ReactJS client.
+5. [ ] Apply realtime websocket in a Angular client.
+
+
 
 **Screenshot**
 
