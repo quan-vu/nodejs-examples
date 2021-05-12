@@ -2,12 +2,15 @@ const PORT = process.env.PORT || 3099;
 const CORS_HOSTS = [
   'http://localhost:3002',  // Web client run on nginx
   'http://localhost:3003',  // React client
+  'http://localhost:3080',  // SocketIO Admin UI
+  'http://socket-admin-ui:3080',  // SocketIO Admin UI
 ];
 
 var express = require('express');
 var cors = require('cors')
 const app = express();
 const httpServer = require("http").Server(app);
+const { instrument } = require("@socket.io/admin-ui");
 const io = require('socket.io')(httpServer, {
   cors: {
     origin: CORS_HOSTS,
@@ -19,6 +22,18 @@ const io = require('socket.io')(httpServer, {
       'x-authorization-id'
     ]
   }
+});
+
+instrument(io, {
+  auth: {
+    type: "basic",
+    username: process.env.SOCKET_ADMIN_USER,
+    password: process.env.SOCKET_ADMIN_PASSWORD_HASH
+    /**
+     * the password is encrypted with bcrypt
+     * check scripts/generate_password.js
+    */
+  },
 });
 
 // START - Database
