@@ -86,12 +86,12 @@ const onConnection = async (socket) => {
   // console.log("Request headers: ", socket.handshake.headers);
   console.log("New client connected");
   
-  // Save userId with connecttionId
   const headers = socket.handshake.headers;
-  if(headers['x-authorization-id'] !== undefined && headers['x-authorization-id'] && socket.id){
-    const userId = headers['x-authorization-id'];
-    const socketId = socket.id;
-    
+  const userId = headers['x-authorization-id'] !== undefined && headers['x-authorization-id'] ? headers['x-authorization-id'] : null;
+  const socketId = socket.id;
+
+  // Save userId with connecttionId
+  if(userId && socketId){    
     const data = {
       userId: userId,
       socketId: socketId
@@ -106,13 +106,26 @@ const onConnection = async (socket) => {
       condition,          // Condition to update
       { returning: true } // Return upserted record
     );
-
-    console.log("Upserted user connection: ", record);
-    // UserConnection.upsert({
-    //   userId: userId,
-    //   socketId: socketId
-    // });
+    // console.log("Upserted user connection: ", record);
   }
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+    
+    if(userId){
+      try {
+        UserConnection.destroy({
+          where: {
+            userId: userId
+          }
+        });
+        console.log("Delete UserConnection record success.");
+      } catch (error) {
+        console.log("Error when delete UserConnection record!");
+      }
+    }
+  });
 
   // Handle event: new_notification
   socket.on( 'new_notification', function( data ) {
