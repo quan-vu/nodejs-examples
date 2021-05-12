@@ -6,9 +6,13 @@ const CORS_HOSTS = [
   'http://socket-admin-ui:3080',  // SocketIO Admin UI
 ];
 
-var express = require('express');
-var cors = require('cors')
+const express = require('express');
+const { checkSchema }  = require('express-validator');
+const { validationResult }  = require('express-validator/check');
+
+const cors = require('cors')
 const app = express();
+
 const httpServer = require("http").Server(app);
 const { instrument } = require("@socket.io/admin-ui");
 const io = require('socket.io')(httpServer, {
@@ -134,9 +138,9 @@ app.use(cors(corsOptions));
 
 // Parser data from request
 app.use(express.json());
-app.use(express.urlencoded({
-  extended: true
-}));
+// app.use(express.urlencoded({
+//   extended: true
+// }));
 
 app.get('/', function(req, res) {
    res.sendFile(__dirname + '/index.html');
@@ -154,7 +158,82 @@ app.get('io').on('connection', onConnection);
 /**
  * RestAPI
 */
-app.post('/notifications', async (req, res) => {
+app.post('/notifications', 
+  checkSchema({
+    user_id: {
+      in: ['body'],
+      errorMessage: 'User ID is must be an integer!',
+      isInt: true,
+      toInt: true,
+    },
+    title: {
+      in: ['body'],
+      errorMessage: 'Title is required!',
+      isString: true,
+      exists: {
+        options: {
+          checkNull: true,
+        },
+        errorMessage: 'Title is missing!',
+      },
+      customSanitizer: {
+        options: (value, {}) => {
+          return value !== undefined && value !== null ? value.trim() : '';
+        },
+      },
+      isLength: {
+        options: { min: 1 },
+        errorMessage: 'Title should be at least 1 chars long!',
+      },
+    },
+    message: {
+      in: ['body'],
+      errorMessage: 'Message is required!',
+      isString: true,
+      exists: {
+        options: {
+          checkNull: true,
+        },
+        errorMessage: 'Message is missing!',
+      },
+      customSanitizer: {
+        options: (value, {}) => {
+          return value !== undefined && value !== null ? value.trim() : '';
+        },
+      },
+      isLength: {
+        options: { min: 1 },
+        errorMessage: 'Message should be at least 1 chars long!',
+      },
+    },
+    icon: {
+      in: ['body'],
+      errorMessage: 'Icon is required!',
+      isString: true,
+      exists: {
+        options: {
+          checkNull: true,
+        },
+        errorMessage: 'Icon is missing!',
+      },
+      customSanitizer: {
+        options: (value, {}) => {
+          return value !== undefined && value !== null ? value.trim() : '';
+        },
+      },
+      isLength: {
+        options: { min: 1 },
+        errorMessage: 'Icon should be at least 1 chars long!',
+      },
+    },
+  }),
+  async (req, res) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    
     console.log(req.body);
     const userId = req.body.user_id || 0;
 
