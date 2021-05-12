@@ -1,0 +1,18 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "Generate password with bcrypt",
+  "main": "generate_password.js",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "generate-password": "^1.6.0",
+    "prompt": "^1.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "password": "node generate_password.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

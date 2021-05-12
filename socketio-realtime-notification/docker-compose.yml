@@ -3,6 +3,7 @@ version: '3'
 services: 
 
     server:
+        hostname: socket_server
         build: 
             context: ./server
         volumes: 
@@ -11,6 +12,18 @@ services:
             - 3099:3099
         environment: 
             - PORT:3099
+            - "SOCKET_ADMIN_USER=${SOCKET_ADMIN_USER-admin}"
+            - "SOCKET_ADMIN_PASSWORD_HASH=${SOCKET_ADMIN_PASSWORD_HASH-password}"
+
+    socket-admin-ui:
+        hostname: socket_admin_ui
+        build: 
+            context: ./socket-admin-ui
+        volumes: 
+            - ./socket-admin-ui/htdocs:/usr/share/nginx/html
+            - ./socket-admin-ui/nginx/nginx.conf:/etc/nginx/conf.d/default.template:ro
+        ports: 
+            - 3080:80
 
     web-client:
         build: 
