@@ -154,7 +154,7 @@ app.get('io').on('connection', onConnection);
 /**
  * RestAPI
 */
-app.post('/notifications', (req, res) => {
+app.post('/notifications', async (req, res) => {
     console.log(req.body);
     const userId = req.body.user_id || 0;
 
@@ -164,29 +164,33 @@ app.post('/notifications', (req, res) => {
       });
     }
 
-    data = {
+    const data = {
       title: req.body.title || "Notification",
       message: req.body.message || "SocketIO emit on express route",
       icon: req.body.icon || "/static/assets/images/user-avatar.png",
     }
 
-    try {
-      // to individual socketid (private message)
-      const socketId = getConnectionByUserId(userId);
-      if (socketId) {
-        req.app.get('io').to(socketId).emit('new_notification', data);
-      } else {
-        // to all clients by default  
-        req.app.get('io').emit('new_notification', data);
-      }
-    } catch (error) {
-        console.error('Error emit socket event from route!', error);
-    }
+    const userConnection = await UserConnection.findOne({ userId, userId });
+    console.log("Found user with connection:", userConnection);
 
-    data = {
-        'message': 'Sent a realtime notification on Express route'
+    if (userConnection) {
+      try {
+        // to individual socketid (private message)
+        req.app.get('io').to(userConnection.socketId).emit('new_notification', data);
+        return res.send({
+          'message': `Sent notifications to user: ${userId}.`
+        });
+      } catch (error) {
+        return res.status(404).send({
+          'message': `Error when notifications to user: ${userId}`,
+          'error': error,
+        });
+      }
+    }else{
+      return res.send({
+        'message': `User ${userId} is offline.`
+      });
     }
-    return res.send(data);
 });
 
 // Start ExpressJS server
