@@ -170,10 +170,10 @@ app.post('/notifications', async (req, res) => {
       icon: req.body.icon || "/static/assets/images/user-avatar.png",
     }
 
-    const userConnection = await UserConnection.findOne({ userId, userId });
-    console.log("Found user with connection:", userConnection);
-
+    const userConnection = await UserConnection.findOne({ where: { userId, userId } });
+    
     if (userConnection) {
+      console.log("Found user with connection:", userConnection.socketId);
       try {
         // to individual socketid (private message)
         req.app.get('io').to(userConnection.socketId).emit('new_notification', data);
