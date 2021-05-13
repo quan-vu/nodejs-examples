@@ -5,7 +5,7 @@ const CORS_HOSTS = [
   'http://localhost:3080',  // SocketIO Admin UI
   'http://socket-admin-ui:3080',  // SocketIO Admin UI
 ];
-
+const crypto = require('crypto');
 const express = require('express');
 const { checkSchema }  = require('express-validator');
 const { validationResult }  = require('express-validator/check');
@@ -181,9 +181,6 @@ app.get('/', function(req, res) {
   return res.json({ message: 'I am alive!'});
 });
 
-app.get('/connections', function(req, res) {
-  UserConnection.findAll().then(connections => res.json(connections));
-});
 
 // Attach SocketIO to ExpressJS
 app.get('io').on('connection', onConnection);
@@ -191,6 +188,7 @@ app.get('io').on('connection', onConnection);
 /**
  * RestAPI
 */
+/* Notification */
 app.post('/notifications', 
   checkSchema({
     user_id: {
@@ -305,7 +303,89 @@ app.post('/notifications',
     }
 });
 
-// Start ExpressJS server
+/* Connection */
+app.get('/connections', function(req, res) {
+  UserConnection.findAll().then(connections => res.json(connections));
+});
+
+/* AuthClient */
+app.post('/auth/access_token', 
+  checkSchema({
+    client_id: {
+      in: ['body'],
+      errorMessage: 'Client ID is required!',
+      isString: true,
+      exists: {
+        options: {
+          checkNull: true,
+        },
+        errorMessage: 'Client ID is missing!',
+      },
+      customSanitizer: {
+        options: (value, {}) => {
+          return value !== undefined && value !== null ? value.trim() : '';
+        },
+      },
+      isLength: {
+        options: { min: 1 },
+        errorMessage: 'Client ID should be at least 1 chars long!',
+      },
+    },
+    client_secret: {
+      in: ['body'],
+      errorMessage: 'Client secret is required!',
+      isString: true,
+      exists: {
+        options: {
+          checkNull: true,
+        },
+        errorMessage: 'Client secret is missing!',
+      },
+      customSanitizer: {
+        options: (value, {}) => {
+          return value !== undefined && value !== null ? value.trim() : '';
+        },
+      },
+      isLength: {
+        options: { min: 1 },
+        errorMessage: 'Client secret should be at least 1 chars long!',
+      },
+    },
+  }),
+  async (req, res) => {  
+    const errors = validationResult(req);    
+    if (!errors.isEmpty()) {
+      return res.status(403).json({ errors: errors.array() });
+    }
+
+    const authClient = await AuthClient.findOne({ 
+      where: { 
+        clientId: req.body.client_id,
+        clientSecret: req.body.client_secret,
+      } 
+    });
+
+    console.log("authClient: ", authClient);
+    
+    if (authClient) {
+        const accessToken = crypto.randomBytes(32).toString('hex');
+        return res.json({
+          message: `Sent notifications to user: ${userId}.`,
+          data: {
+            acess_token: accessToken,
+          }
+        });
+    }else{
+      return res.json({
+        'message': `Unauthorized`
+      });
+    }
+  }
+);
+
+/**
+ * Start ExpressJS server
+ */
 httpServer.listen(PORT, function() {
    console.log(`Listening on http://localhost:${PORT}`);
 });
