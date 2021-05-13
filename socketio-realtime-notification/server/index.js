@@ -68,6 +68,28 @@ const UserConnection = sequelize.define('user_connections', {
     },
   }
 );
+const AuthClient = sequelize.define('auth_clients', {
+  id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+  },
+  clientId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  clientSecret: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  accessToken: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  }
+}
+);
 
 (async () => {
   await sequelize.sync({ force: true })
@@ -156,14 +178,12 @@ app.use(express.json());
 // }));
 
 app.get('/', function(req, res) {
-   res.sendFile(__dirname + '/index.html');
+  return res.json({ message: 'I am alive!'});
 });
 
 app.get('/connections', function(req, res) {
   UserConnection.findAll().then(connections => res.json(connections));
 });
-
-app.use('/static', express.static(__dirname + '/public'))
 
 // Attach SocketIO to ExpressJS
 app.get('io').on('connection', onConnection);
