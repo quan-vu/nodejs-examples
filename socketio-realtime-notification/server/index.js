@@ -7,14 +7,13 @@ const CORS_HOSTS = [
 ];
 const crypto = require('crypto');
 const express = require('express');
-const { checkSchema }  = require('express-validator');
-const { validationResult }  = require('express-validator/check');
+const { checkSchema, validationResult }  = require('express-validator');
 
 const cors = require('cors')
 const app = express();
 
 const httpServer = require("http").Server(app);
-const { instrument } = require("@socket.io/admin-ui");
+// const { instrument } = require("@socket.io/admin-ui");
 const io = require('socket.io')(httpServer, {
   cors: {
     origin: CORS_HOSTS,
@@ -28,17 +27,17 @@ const io = require('socket.io')(httpServer, {
   }
 });
 
-instrument(io, {
-  auth: {
-    type: "basic",
-    username: process.env.SOCKET_ADMIN_USER,
-    password: process.env.SOCKET_ADMIN_PASSWORD_HASH,
-    /**
-     * the password is encrypted with bcrypt
-     * check scripts/generate_password.js
-    */
-  },
-});
+// instrument(io, {
+//   auth: {
+//     type: "basic",
+//     username: process.env.SOCKET_ADMIN_USER,
+//     password: process.env.SOCKET_ADMIN_PASSWORD_HASH,
+//     /**
+//      * the password is encrypted with bcrypt
+//      * check scripts/generate_password.js
+//     */
+//   },
+// });
 
 /** END - Init database */
 const { Sequelize, Model, DataTypes } = require("sequelize");
@@ -160,35 +159,56 @@ const onConnection = async (socket) => {
 
 }
 
+function currentUserMiddleware(req, res, next) {
+  const token = req.header("x-authorization") !== undefined && req.header("x-authorization") ? req.header("x-authorization") : null;
+  if (token){
+    console.log(token);
+    AuthClient.findOne({ where: { accessToken: token } }).then(user => {
+      req.user = user;  // append the user object the the request object
+      next(); // call next middleware in the stack
+    });
+  }else{
+    next(); // call next middleware in the stack
+  }
+};
+
+function isLoggedIn (req, res, next) {
+  if (req.user) {
+    next();
+  } else {
+    res.status = 401;
+    return res.json({ message: "Unauthorized" });
+  }
+};
+
 /**
- * Start ExpressJS server with Socket
-**/
-
-// Attach SocketIO to Expressjs
+ * Attach SocketIO to Expressjs
+ */
 app.set('io', io);
+app.get('io').on('connection', onConnection);
 
+/**
+ * Configure Expressjs
+ */
 // Config CORS orign as global
 app.use(cors(corsOptions));
-
-// Parser data from request
 app.use(express.json());
-// app.use(express.urlencoded({
-//   extended: true
-// }));
+app.use(express.urlencoded({ extended: true }));
 
-app.get('/', function(req, res) {
-  return res.json({ message: 'I am alive!'});
-});
+// Middleware
+app.use(currentUserMiddleware);
 
-
-// Attach SocketIO to ExpressJS
-app.get('io').on('connection', onConnection);
 
 /**
  * RestAPI
 */
-/* Notification */
+app.get('/', function(req, res) {
+  return res.json({ message: new Date()});
+});
+
+// Notification
 app.post('/notifications', 
+  isLoggedIn,
   checkSchema({
     user_id: {
       in: ['body'],
@@ -258,13 +278,11 @@ app.post('/notifications',
     },
   }),
   async (req, res) => {
-    // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
     
-    console.log(req.body);
     const userId = req.body.user_id || 0;
 
     if (! userId) {
@@ -279,35 +297,35 @@ app.post('/notifications',
       icon: req.body.icon || "/static/assets/images/user-avatar.png",
     }
 
-    const userConnection = await UserConnection.findOne({ where: { userId, userId } });
+    const userConnection = await UserConnection.findOne({ where: { userId: userId } });
     
     if (userConnection) {
-      console.log("Found user with connection:", userConnection.socketId);
+      // console.log("Found user with connection:", userConnection.socketId);
       try {
         // to individual socketid (private message)
         req.app.get('io').to(userConnection.socketId).emit('new_notification', data);
-        return res.send({
-          'message': `Sent notifications to user: ${userId}.`
+        return res.json({ 
+          message: `Sent notifications to user: ${userId}.`
         });
       } catch (error) {
-        return res.status(404).send({
-          'message': `Error when notifications to user: ${userId}`,
-          'error': error,
+        return res.status(404).json({
+          message: `Error when notifications to user: ${userId}`,
+          error: error,
         });
       }
     }else{
-      return res.send({
-        'message': `User ${userId} is offline.`
+      return res.json({
+        message: `User ${userId} is offline.`
       });
     }
 });
 
-/* Connection */
-app.get('/connections', function(req, res) {
+// Connection
+app.get('/connections', isLoggedIn, function(req, res) {
   UserConnection.findAll().then(connections => res.json(connections));
 });
 
-/* AuthClient */
+// AuthClient
 app.post('/auth/access_token', 
   checkSchema({
     client_id: {
@@ -364,8 +382,6 @@ app.post('/auth/access_token',
       } 
     });
 
-    console.log("authClient: ", authClient);
-    
     if (authClient) {
         try {
           const accessToken = crypto.randomBytes(32).toString('hex');
@@ -386,20 +402,20 @@ app.post('/auth/access_token',
             }
           });
         } catch (error) {
-          return res.json({
+          return res.status(500).json({
             message: `Error when create new access token!`,
           });
         }
     }else{
-      return res.json({
-        'message': `Unauthorized`
+      return res.status(401).json({
+        message: `Client is unauthorized`
       });
     }
   }
 );
 
 /**
- * Start ExpressJS server
+ * Start server
  */
 httpServer.listen(PORT, function() {
    console.log(`Listening on http://localhost:${PORT}`);
