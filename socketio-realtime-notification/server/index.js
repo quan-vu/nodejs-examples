@@ -31,8 +31,8 @@ const io = require('socket.io')(httpServer, {
 instrument(io, {
   auth: {
     type: "basic",
-    username: 'admin9',
-    password: '$2b$10$otg69YkoOHHlvZVjBh5VT.7u4Q/d0haB7LuMVGlXCqs.4cx4J8h1u',
+    username: process.env.SOCKET_ADMIN_USER,
+    password: process.env.SOCKET_ADMIN_PASSWORD_HASH,
     /**
      * the password is encrypted with bcrypt
      * check scripts/generate_password.js

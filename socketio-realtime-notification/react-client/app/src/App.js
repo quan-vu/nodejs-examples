@@ -10,6 +10,11 @@ import {
 
 const ENDPOINT = process.env.REACT_APP_NOTIFICATION_HOST;
 
+/**
+ * How it works
+ *  - Case 01: User click on login and login success THEN make a connection to Socket - DONE
+ *  - Case 02: Page refresh (F5) - Check user is logged in and reconnect.
+*/
 
 function App() {
 
@@ -28,31 +33,41 @@ function App() {
     setNotifications(_notifications);
   }
 
-  useEffect(() => {
-    const socket = socketIOClient(ENDPOINT, {
-      withCredentials: true,
-      extraHeaders: {
-        "x-authorization-id": uid
-      }
-    });
+  const doLogin = (event) => {
+    console.log("App - User login..");
+    socket.connect();
+  }
+
+  const socket = socketIOClient(ENDPOINT, {
+    autoConnect: false,
+    withCredentials: true,
+    extraHeaders: {
+      "x-authorization-id": uid
+    }
+  });
+
+  // socket.on("FromAPI", data => {
+  //   setResponse(data);
+  // });
+
+  socket.on("connecttion", data => {
     
-    // socket.on("FromAPI", data => {
-    //   setResponse(data);
-    // });
+  });
 
-    socket.on("connecttion", data => {
-      
-    });
+  socket.on("disconnect", () => {
+    socket.connect();
+  });
 
-    socket.on("new_notification", data => {
-      if(data.title !== undefined){
-        console.log('Received new notification: ', data);
-        setNotification(data);
-        addNewNotification(data);
-      }
-    });
-
-    return () => socket.disconnect();
+  socket.on("new_notification", data => {
+    if(data.title !== undefined){
+      console.log('Received new notification: ', data);
+      setNotification(data);
+      addNewNotification(data);
+    }
+  });
+  
+  useEffect(() => {
+    // return () => socket.disconnect();
   }, []);
 
   return (
@@ -63,6 +78,11 @@ function App() {
           Socket server time: <time dateTime={response}>{response}</time>
         </p> */}
         <Home/>
+        <div className="my-5">
+            <div className="col-sm-12 text-left">
+              <a onClick={() => doLogin()} className="btn btn-success">Login</a>
+            </div>
+          </div>
       </main>
     </div>
   );
