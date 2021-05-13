@@ -92,10 +92,9 @@ const AuthClient = sequelize.define('auth_clients', {
 );
 
 (async () => {
-  await sequelize.sync({ force: true })
-      .then(() => {
-          console.log(`Database & tables created!`);
-      });
+  await sequelize.sync().then(() => {
+    console.log(`Database & tables created!`);
+  });
 })();
 /** END - Init database */
 
@@ -368,13 +367,29 @@ app.post('/auth/access_token',
     console.log("authClient: ", authClient);
     
     if (authClient) {
-        const accessToken = crypto.randomBytes(32).toString('hex');
-        return res.json({
-          message: `Sent notifications to user: ${userId}.`,
-          data: {
-            acess_token: accessToken,
-          }
-        });
+        try {
+          const accessToken = crypto.randomBytes(32).toString('hex');
+
+          AuthClient.update({
+            accessToken: accessToken,
+          }, {
+            where: { 
+              clientId: authClient.clientId,
+              clientSecret: authClient.clientSecret,
+            } 
+          });
+
+          return res.json({
+            message: `Create new access token successfully.`,
+            data: {
+              access_token: accessToken,
+            }
+          });
+        } catch (error) {
+          return res.json({
+            message: `Error when create new access token!`,
+          });
+        }
     }else{
       return res.json({
         'message': `Unauthorized`
